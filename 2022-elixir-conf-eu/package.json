@@ -1,0 +1,13 @@
+{
+  "name": "2022-elixir-conf-eu",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "render-diagrams": "mmdc -i diagrams.md -o diagrams/diagram.svg"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^9.1.2"
+  }
+}
