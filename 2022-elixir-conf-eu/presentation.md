@@ -511,7 +511,7 @@ And now you can query through Grafana (or other frontends)
 
 ---
 
-![bg](images/prometheus-metric-grafana.png)
+![bg 101.7%](images/prometheus-metric-grafana.png)
 
 ---
 
