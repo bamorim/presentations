@@ -1,6 +1,6 @@
 ```mermaid
 graph TD
-    P[Prometheus] -->|:telemetry.execute/3| T(:telemetry)
+    P[Phoenix] -->|:telemetry.execute/3| T(:telemetry)
     E[Ecto] -->|:telemetry.execute/3| T
     T -->|handle/4| H1(Handler 1)
     T -->|handle/4| H.(...)
@@ -9,7 +9,7 @@ graph TD
 
 ```mermaid
 graph TB
-  P[Prometheus] --> |:telemetry.execute/3| T[:telemetry]
+  P[Phoenix] --> |:telemetry.execute/3| T[:telemetry]
   T --> |handle/4| CL[CustomLogger]
   CL --> |Logger.info/3| Logger
 ```
@@ -30,4 +30,21 @@ sequenceDiagram
   W ->> D : {"weather": "rainy"}
   D ->> G : {"weather": "rainy", <br/> "task_descriptions": <br/>["A Task"]}
   G ->> B : {...}
+```
+
+```mermaid
+graph TB
+  P[Phoenix] --> |:telemetry.execute/3| T[:telemetry]
+  Ecto -->|:telemetry.execute/3| T
+  :telemetry_poller -->|:telemetry.execute/3| T
+  T --> |handle/4| MetricsReporter
+```
+
+```mermaid
+graph TB
+  P[Phoenix] --> |:telemetry.execute/3| T[:telemetry]
+  Ecto -->|:telemetry.execute/3| T
+  :telemetry_poller -->|:telemetry.execute/3| T
+  T --> |handle/4| Phoenix.LiveDashboard
+  T --> |handle/4| PromEx
 ```

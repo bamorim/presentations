@@ -8,13 +8,12 @@ marp: true
 
 # Agenda
 
-- What is Observability (2m)
-- My Story (4m)
-- Three Pillars of Observability (2m)
-- Beam Telemetry (2m)
-- Structured Logging (5m)
-- Metrics (5m)
-- Distributed Tracing (5m)
+- What is Observability
+- My Story
+- `:telemetry`
+- Structured Logging
+- Metrics
+- Distributed Tracing
 
 ---
 
@@ -32,6 +31,9 @@ According to Wikipedia
 
 > Observability is a measure of how well internal states of a system can be
 > inferred from knowledge of its external outputs.
+
+<!-- Word from Control Theory -->
+<!-- What do we want to know about the system? -->
 
 ---
 
@@ -111,7 +113,7 @@ We want to
 
 ---
 
-# TODO: Maybe add video of request flow, grafana logs and then traces
+<video src="./videos/demo-observable-elixir.webm" controls width="100%"></video>
 
 ---
 
@@ -190,17 +192,17 @@ Common data
 
 ---
 
+# My problem with Phoenix default logging
+
+![bg right fit](images/phoenix-logger-problem.png)
+
+---
+
 # Structured Logs
 
 ## Making it easy for machines to understand your logs
 
 ### TL;DR: Log in JSON or logfmt format
-
----
-
-# My problem with Phoenix default logging
-
-![bg right fit](images/phoenix-logger-problem.png)
 
 ---
 
@@ -274,16 +276,6 @@ TelemetryLogger.attach_loggers([
 # Grafana, Loki and LogQL are Awesome
 
 ![](images/complex-logql-query.png)
-
----
-
-# Logs Cons
-
-- Expensive to store and retrieve
-- Extracting metrics like pXX latency is sometimes prohibitively expensive
-  - Which means alerting based on logs is also expensive
-- Logging too much decreases signal-to-noise ratio making it harder to find
-  information
   
 ---
 
@@ -293,21 +285,27 @@ TelemetryLogger.attach_loggers([
 - **Don't do** "print-debugging"
 - **Do** take advantage of log levels
 - **Do** allow your system to change log level without redeploying
-- **Don't** nest fields in your logs (makes)
+- **Don't** nest fields in your logs
+
+---
+
+# Logs help with debugging, but
+
+## How to check if the system is healthy?
+
+- Requests/second
+- Average (and other percentiles) latency
+- Memory and CPU usage
 
 ---
 
 # Metrics
 
----
-
-# Metrics are
-
 ## Numerical values sampled over time
 
 ---
 
-# Metrics are a high-level view of your system
+# Metrics give you a high-level view of your system
 
 
 - Useful both on a technical level (e.g. memory usage) or domain level (e.g. total count of payments processed)
@@ -356,7 +354,13 @@ TelemetryLogger.attach_loggers([
 
 ---
 
-# TODO: Diagram showing flow of information
+## `Telemetry.Metrics`
+
+- Language for defining `:telemetry` based metrics
+- Define 5 different metric types (counter, distribution, last value, sum and summary)
+- Metric Reporters attach to events and aggregate them
+
+![bg right fit](diagrams/diagram-4.svg)
 
 ---
 
@@ -385,7 +389,6 @@ defmodule DailyWeb.Telemetry do
     ]
   end
 end
-
 ```
 
 ---
@@ -421,7 +424,14 @@ end
 
 ---
 
-# TODO: Diagram about prometheus pull model
+# Pull vs Push
+
+- Prometheus is Pull, that is, Prometheus controls when to ask for metrics
+  - Improves back-pressure (if Prometheus is overloaded it can delay the sampling)
+- Your app just need to:
+  - Keep last values for metrics
+  - Be able to report them when Prometheus request (in a specific format)
+- For short-lived jobs, there is the Pushgateway
 
 ---
 
@@ -451,7 +461,22 @@ other_metric{label=value} 3.14
 
 ---
 
-# TODO: Diagram showing TelemetryMetricPrometheus / PromEx as another reporter 
+![bg](images/telemetry_metrics_prometheus.png)
+
+---
+
+![bg](images/prom_ex.png)
+
+---
+
+# `PromEx`
+
+- Just another handler
+- Shared core with `TelemetryMetricsPrometheus`
+- Nice library of ready-made metrics and Grafana dashboards
+- For something more minimalist, `TelemetryMetricsPrometheus` is probably your best bet.
+
+![bg right fit](diagrams/diagram-5.svg)
 
 ---
 
@@ -559,6 +584,10 @@ And now you can query through Grafana (or other frontends)
 
 ---
 
+![bg](images/prometheus-metric-grafana.png)
+
+---
+
 And let's say you have something like
 
 ```elixir
@@ -585,9 +614,3 @@ Each will generate a JSON file you import into Grafana.
 ---
 
 ![bg](images/ecto-grafana-dashboard.png)
-
----
-
-# Further Reading
-
-https://akoutmos.com/post/elixir-logging-loki/
