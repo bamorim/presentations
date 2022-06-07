@@ -9,11 +9,15 @@ marp: true
 # Agenda
 
 - What is Observability
-- My Story
-- `:telemetry`
-- Structured Logging
+- Event Logging
 - Metrics
-- Distributed Tracing
+- Traces
+
+And we will be talking alot about `:telemetry`
+
+<!-- It's going to be intense -->
+<!-- Will throw a bunch of words -->
+<!-- There is a demo repo so you can check code afterwards -->
 
 ---
 
@@ -45,67 +49,9 @@ We want to
 
 ---
 
-# My Story
-
----
-
-# Early Career (2012)
-
-- Mostly monolithic Rails apps hosted on Heroku
-- Mostly Rails apps
-- Debugging with `heroku remote`
-- `heroku logs` for logs
-- New Relic for metrics
-
----
-
-# Stone (2017~2019)
-
-- Elixir microservices on Kubernetes (Azure / GCP)
-- Debugging with `kubectl port-forward` + `iex --remsh`
-  - Ability to use `:recon`, `:erlang.trace/3`, etc
-- ELK Stack for logs
-- Prometheus for metrics
-
----
-
-![bg](images/elk.png)
-
----
-
-![bg](images/prometheus.png)
-
----
-
-# At Salt (2021-2022)
-
-- Elixir microservices on Kubernetes (AWS)
-- Remote access strictly forbidden
-- Grafana Stack (Grafana, Prometheus, Loki, Tempo) for logs, metrics and traces
-
----
-
-# No more remsh, recon, etc
-
-![bg right fit](images/erlang-in-anger.png)
-
----
-
-![bg](images/grafana-o11y-stack.png)
-
----
-
-![bg](images/grafana-lgtm.png)
-
----
-
 # The Demo App for this presentation
 
 ## [github.com/bamorim/observable-elixir-daily](https://github.com/bamorim/observable-elixir-daily)
-
----
-
-![bg](images/observable-elixir-daily.png)
 
 ---
 
@@ -114,6 +60,11 @@ We want to
 ---
 
 <video src="./videos/demo-observable-elixir.webm" controls width="100%"></video>
+
+
+---
+
+![bg](images/grafana-o11y-stack.png)
 
 ---
 
@@ -157,10 +108,11 @@ Common data
 # `:telemetry` events
 
 ```elixir
+@type event() :: {event_name(), metadata(), measurements()}
+
 @type event_name() :: [atom(), ...]
 @type metadata() :: map()
 @type measurements() :: map()
-@type event() :: {event_name(), metadata(), measurements()}
 ```
 
 ---
@@ -196,21 +148,18 @@ Common data
 
 ![bg right fit](images/phoenix-logger-problem.png)
 
----
-
-# Structured Logs
-
-## Making it easy for machines to understand your logs
-
-### TL;DR: Log in JSON or logfmt format
+<!-- Data divided across lines -->
+<!-- Hard for a machine to process it -->
 
 ---
 
-# Implement in Elixir
+# We can fix it
 
 - Disable default Phoenix Logger
 - Implement custom logger by listening to telemetry events
-- Implement custom log formatter using Logfmt or JSON
+- Implement custom log formatter using a structured format (Logfmt or JSON)
+
+![bg fit right](diagrams/diagram-2.svg)
 
 ---
 
@@ -269,6 +218,8 @@ TelemetryLogger.attach_loggers([
 
 ---
 
+<!-- TODO: Show just the logs -->
+
 ![bg](images/structured-logs-in-grafana.png)
 
 ---
@@ -322,7 +273,6 @@ TelemetryLogger.attach_loggers([
 - Complexity is only dependent on number of timeseries and sample frequency
 - Great for alerting
 - Great for long term storage
-- Can be downsampled for even longer term storage
 
 ---
 
@@ -346,7 +296,6 @@ TelemetryLogger.attach_loggers([
 
 - `Plug.Telemetry` emits `[:phoenix, :endpoint, :stop]` events
 - We can count the number of events emitted and aggregate into the "total number of requests"
-- Maybe keep count of requests per route
 
 ---
 
@@ -368,7 +317,7 @@ TelemetryLogger.attach_loggers([
 
 ---
 
-```elixir foit
+```elixir
 defmodule DailyWeb.Telemetry do
   use Supervisor
   import Telemetry.Metrics
@@ -414,16 +363,6 @@ end
 
 ---
 
-# Prometheus is a big ecossystem
-
-- Compatible alternatives for parts of the system (for example, long-term storage):
-  - Grafana Mimir
-  - Grafana Cortex
-  - Thanos
-- Exporters for systems like Postgres, Redis, HAProxy, etc
-
----
-
 # Pull vs Push
 
 - Prometheus is Pull, that is, Prometheus controls when to ask for metrics
@@ -431,22 +370,10 @@ end
 - Your app just need to:
   - Keep last values for metrics
   - Be able to report them when Prometheus request (in a specific format)
-- For short-lived jobs, there is the Pushgateway
 
 ---
 
-# Prometheus Format
-
-### Metric Names
-
-```prometheus
-my_metric{label1=value1}
-my_metric{label1=value2}
-
-other_metric{label=value}
-```
-
-### Prometheus Exposition Format
+# Prometheus Exposition Format
 
 ```prometheus
 my_metric{label1=value1} 101
@@ -614,3 +541,143 @@ Each will generate a JSON file you import into Grafana.
 ---
 
 ![bg](images/ecto-grafana-dashboard.png)
+
+---
+
+# Traces
+
+A trace is a collection of **correlated events** that captures information about
+a program execution.
+
+---
+
+# Distributed Tracing
+
+A trace where spans are executed in multiple different services.
+
+---
+
+# Trace Model
+
+- A **trace** is a tree of **spans**
+- A **span**:
+  - Has a start and end timestamps
+  - Contained to one service
+  - Contains some metadata
+  - Belogns to a trace
+  - Can be either root or child of another span on the same trace
+
+![bg fit right:33% 90%](diagrams/diagram-6.svg)
+
+---
+
+![bg](images/grafana-tempo-trace.png)
+
+---
+
+![bg](images/grafana-tempo-span.png)
+
+---
+
+# Implementation
+
+---
+
+![bg](images/opentelemetry.png)
+
+<!-- OpenCensus Open Source of Google Census -->
+<!-- OpenTracing -->
+
+---
+
+![bg](images/opentelemetry_api.png)
+
+---
+
+![bg](images/opentelemetry_sdk.png)
+
+---
+
+![bg](images/opentelemetry_telemetry.png)
+
+---
+
+![bg](images/opentelemetry_phoenix.png)
+
+---
+
+![bg](images/opentelemetry_ecto.png)
+
+---
+
+![bg](images/opentelemetry_tesla.png)
+
+---
+
+# Add relevant libraries
+
+
+``` elixir
+def deps do
+  [
+    {:opentelemetry, "~> 1.0"},
+    {:opentelemetry_exporter, "~> 1.0"},
+    {:opentelemetry_phoenix, "~> 1.0"},
+    {:opentelemetry_ecto, "~> 1.0"},
+    {:opentelemetry_tesla, "~> 2.0"}
+  ]
+end
+```
+
+---
+
+# Setup instrumentation
+
+On your `Application.start`
+```elixir
+  OpentelemetryEcto.setup([:daily, :repo])
+  OpentelemetryPhoenix.setup()
+```
+
+On your Tesla client, add:
+
+```elixir
+Tesla.client([
+  # ...
+  Tesla.Middleware.OpenTelemetry
+])
+```
+
+---
+
+# Configure the SDK and Exporter
+
+Easiest way is to set the following environment variables
+
+```yaml
+OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://tempo:4317"
+OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: grpc
+OTEL_SERVICE_NAME: "daily"
+```
+
+---
+
+# Extra: incluide trace_id in logs
+
+Add to your `Phoenix.Endpoint`:
+
+```elixir
+plug :set_logger_trace_id
+
+def set_logger_trace_id(conn, _opts) do
+  span_ctx = OpenTelemetry.Tracer.current_span_ctx()
+
+  if span_ctx != :undefined do
+    Logger.metadata(trace_id: OpenTelemetry.Span.hex_trace_id(span_ctx))
+  end
+
+  conn
+end
+```
+
+<!-- I'd love a better way to do this -->

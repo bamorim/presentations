@@ -10,8 +10,8 @@ graph TD
 ```mermaid
 graph TB
   P[Phoenix] --> |:telemetry.execute/3| T[:telemetry]
-  T --> |handle/4| CL[CustomLogger]
-  CL --> |Logger.info/3| Logger
+  T --> |handle/4| PL[Phoenix.Logger]
+  PL --> |Logger.info/3| Logger
 ```
 
 ```mermaid
@@ -47,4 +47,13 @@ graph TB
   :telemetry_poller -->|:telemetry.execute/3| T
   T --> |handle/4| Phoenix.LiveDashboard
   T --> |handle/4| PromEx
+```
+
+```mermaid
+graph TB
+  G[<b>Gateway</b><br/>/api/reports/daily] --> D[<b>Daily</b><br/>/api/reports/daily]
+  D --> DR1[<b>Daily</b><br/>Repo.all]
+  DR1 --> P[<b>Postgres</b><br/>SELECT]
+  D --> DR2[<b>Daily</b><br/>Weather.get]
+  DR2 --> W[<b>Weather</b><br/>/api/weather]
 ```

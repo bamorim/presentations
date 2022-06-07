@@ -7,7 +7,7 @@
     "build": "npm-run-all build:diagrams --parallel build:slides:*",
     "build:diagrams": "mmdc -i diagrams.md -o diagrams/diagram.svg",
     "build:slides:pdf": "marp presentation.md --allow-local-files -o presentation.pdf",
-    "build:slides:html": "marp presentation.md -o presentation.html"
+    "build:slides:html": "marp presentation.md -o index.html"
   },
   "author": "",
   "license": "ISC",
